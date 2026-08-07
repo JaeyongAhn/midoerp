@@ -1,0 +1,29 @@
+create table auth(
+id int auto_increment primary key,
+email varchar(255),
+passwd varchar(255),
+created_at timestamp default current_timestamp,
+index(email)
+);
+
+create table account_id(
+id int auto_increment primary key,
+shorten varchar(100),
+created_at timestamp default current_timestamp,
+index(shorten)
+);
+
+create table account(
+id int auto_increment primary key,
+account_id int,
+trans_date timestamp,
+chulguem long,
+ipguem long,
+janeak long,
+naeyong varchar(100),
+memo varchar(255),
+tag varchar(100),
+index(account_id),
+index(trans_date),
+index(tag)
+);
