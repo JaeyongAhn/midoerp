@@ -22,11 +22,15 @@ class Auth extends BaseController
             $hash = $query->getRow()->passwd;
             
             if (password_verify($passwd, $hash)) {
+                $this->session->set('logined', true);
+                $this->session->set('email', $email);
                 return json_encode(['code'=>100]);
             } else {
+                $this->session->set('logined', false);
                 return json_encode(['code'=>0]);
             }
         }
+        $this->session->set('logined', false);
         return json_encode(['code'=>0]);
     }
 }

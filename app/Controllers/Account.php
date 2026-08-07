@@ -8,7 +8,9 @@ class Account extends BaseController
 {
     public function index(): string
     {
-        return view('account');
+        if($this->session->get('logined'))
+            return view('account');
+        return '로그인이 필요합니다.';
     }
 
     public function load_tags()

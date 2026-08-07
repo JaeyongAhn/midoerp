@@ -27,3 +27,8 @@ index(account_id),
 index(trans_date),
 index(tag)
 );
+
+create table tags(
+id int auto_increment primary key,
+name varchar(100) unique
+);
