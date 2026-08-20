@@ -9,13 +9,25 @@ class Account extends BaseController
     public function index(): string
     {
         if($this->session->get('logined'))
-            return view('account');
+        {
+            $res = $this->db->query("select * from account_id order by id desc limit 1")->getRowArray();
+            if(!$res){
+                $res = [
+                    'last_account' => '0000-00-00 00:00:00'
+                ];
+            }
+            return view('account', [
+                'last_transdate' => $res['last_account']
+            ]);
+        }
         return '로그인이 필요합니다.';
     }
 
     public function load_tags()
     {
-        $tags = $this->db->query("select name from tags order by id")->getResultArray();
+        $mode = $this->request->getGet('mode');
+
+        $tags = $this->db->query("select name from tags where `mode` = ? order by id", [$mode])->getResultArray();
         return $this->response->setJSON([
                 'data' => $tags
             ]);
@@ -24,8 +36,11 @@ class Account extends BaseController
     public function save_tags()
     {
         $data = $this->request->getJSON(true);
-        foreach($data as $item){
-            $row = $this->db->query("select count(1) cnt from tags where name = ?", [$item])->getRow();
+        
+        error_log(json_encode($data));
+        $mode = $data['mode'];
+        foreach($data['tags'] as $item){
+            $row = $this->db->query("select count(1) cnt from tags where `mode` = ? and name = ?", [$mode, $item])->getRow();
             if($row->cnt > 0){
                return $this->response->setJSON([
                     'success' => false,
@@ -34,8 +49,8 @@ class Account extends BaseController
             }
         }
 
-        foreach($data as $item){
-            $this->db->query("insert into tags(name) values(?)", [$item]);
+        foreach($data['tags'] as $item){
+            $this->db->query("insert into tags(`mode`, name) values(?,?)", [$mode, $item]);
         }
 
         return $this->response->setJSON([
@@ -46,7 +61,8 @@ class Account extends BaseController
     public function save_tag()
     {
         $data = $this->request->getJSON(true);
-        $this->db->query("update account set tag = ? where id = ?", [ $data['tag'], $data['id'] ]);
+        $mode = $data['mode'];
+        $this->db->query("update account set tag{$mode} = ? where id = ?", [ $data['tag'], $data['id'] ]);
         return $this->response->setJSON([
             'success' => true
         ]);
@@ -106,7 +122,7 @@ class Account extends BaseController
         if($res){
             $data = $this->db->query("select * from account where account_id = ? order by trans_date desc", [$res->id])->getResultArray();
         }else{
-            $this->db->query("insert into account_id(shorten) values(?)", $result);
+            $this->db->query("insert into account_id(shorten, last_account) values(?,?)", [$result, $rows[3][1]]);
             $id = $this->db->insertID();
             for($i=3; $i<count($rows)-1; $i++){
                 $this->db->query("insert into account(account_id, trans_date, chulguem, ipguem, janeak, naeyong, memo) values(?,?,?,?,?,?,?)",
@@ -129,6 +145,7 @@ class Account extends BaseController
                 'banner' => $rows[1][0],
                 'test' => json_encode($res),
                 'data' => json_encode($data),
+                'last' => $rows[3][1],
                 'message' => 'Excel 읽기 완료'
             ]);
         }
@@ -144,8 +161,10 @@ class Account extends BaseController
 
         $startDate = $data['startDate'];
         $endDate = $data['endDate'];
-        $searchTag = $data['tag'];
-
+        $searchTag1 = $data['tag1'];
+        $searchTag2 = $data['tag2'];
+        $searchTag3 = $data['tag3'];
+        
         $builder = $this->db->table('account');
 
         if (!empty($startDate)) {
@@ -156,9 +175,19 @@ class Account extends BaseController
             $builder->where('trans_date <=', $endDate . ' 23:59:59');
         }
 
-        if (!empty($searchTag)) {
-            foreach ($searchTag as $tag) {
-                $builder->like('tag', $tag);   // tag 컬럼에 searchTag를 포함하는 데이터
+        if (!empty($searchTag1)) {
+            foreach ($searchTag1 as $tag) {
+                $builder->like('tag1', $tag);   // tag 컬럼에 searchTag를 포함하는 데이터
+            }
+        }
+        if (!empty($searchTag2)) {
+            foreach ($searchTag2 as $tag) {
+                $builder->like('tag2', $tag);   // tag 컬럼에 searchTag를 포함하는 데이터
+            }
+        }
+        if (!empty($searchTag3)) {
+            foreach ($searchTag3 as $tag) {
+                $builder->like('tag3', $tag);   // tag 컬럼에 searchTag를 포함하는 데이터
             }
         }
         $builder->orderBy('trans_date', 'DESC');

@@ -47,7 +47,7 @@
                                 id="email"
                                 type="text"
                                 class="form-control"
-                                placeholder="name@example.com"
+                                placeholder="아이디"
                                 required>
                         </div>
 

@@ -57,7 +57,7 @@
     <div class="row">
 
         <!-- 사이드 메뉴 -->
-        <div class="col-md-2 sidebar p-3">
+        <div class="col-md-1 sidebar p-3">
             <h4 class="text-white mb-4">메뉴</h4>
 
             <ul class="nav flex-column">
@@ -68,7 +68,7 @@
         </div>
 
         <!-- 본문 -->
-        <div class="col-md-10 p-4">
+        <div class="col-md-11 p-4">
 
             <!-- 상단 -->
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -79,8 +79,14 @@
                 <input type="text" id="startDate" class="form-control datepicker" style="width: 180px;">
                 마지막날짜
                 <input type="text" id="endDate" class="form-control datepicker" style="width: 180px;">
-                검색태그
-                <select id="searchTag" class="form-select" multiple style="width: 180px;">
+                계정과목
+                <select id="searchTag1" class="form-select" multiple style="width: 180px;">
+                </select>
+                현장
+                <select id="searchTag2" class="form-select" multiple style="width: 180px;">
+                </select>
+                거래처
+                <select id="searchTag3" class="form-select" multiple style="width: 180px;">
                 </select>
                 <button class="btn btn-primary" id="search">
                     검색
@@ -116,7 +122,7 @@
             <!-- 테이블 -->
             <div class="card shadow-sm">
                 <div class="card-body">
-
+                    <p id="last_transdate">마지막 내역: <?=esc($last_transdate)?></p>
                     <div class="table-responsive">
                         <table class="table table-striped table-hover align-middle">
                             <thead class="table-dark">
@@ -127,7 +133,9 @@
                                     <th>거래후잔액</th>
                                     <th>거래내용</th>
                                     <th>메모</th>
-                                    <th>태그<button onclick="openModal()">+</button></th>
+                                    <th>계정과목<button onclick="openModal(1)">+</button></th>
+                                    <th>현장<button onclick="openModal(2)">+</button></th>
+                                    <th>거래처<button onclick="openModal(3)">+</button></th>
                                 </tr>
                             </thead>
                             <tbody id="table">
@@ -142,12 +150,28 @@
 
     </div>
 </div>
-<div id="myModal" class="modal">
-    <div class="modal-content" id="tagInputs">
-        <h2>태그입력</h2>
+<div id="myModal1" class="modal">
+    <div class="modal-content" id="tagInputs1">
+        <h2>계정과목 입력</h2>
         <input class="tags_name" type="text">
-        <button onclick="saveModal()">저장</button>
-        <button onclick="closeModal()">취소</button>
+        <button onclick="saveModal(1)">저장</button>
+        <button onclick="closeModal(1)">취소</button>
+    </div>
+</div>
+<div id="myModal2" class="modal">
+    <div class="modal-content" id="tagInputs2">
+        <h2>현장 입력</h2>
+        <input class="tags_name" type="text">
+        <button onclick="saveModal(2)">저장</button>
+        <button onclick="closeModal(2)">취소</button>
+    </div>
+</div>
+<div id="myModal3" class="modal">
+    <div class="modal-content" id="tagInputs3">
+        <h2>거래처 입력</h2>
+        <input class="tags_name" type="text">
+        <button onclick="saveModal(3)">저장</button>
+        <button onclick="closeModal(3)">취소</button>
     </div>
 </div>
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
@@ -178,6 +202,7 @@
 
         const result = await response.json();
         const data = JSON.parse(result.data);
+        document.getElementById('last_transdate').innerHTML = `마지막 내역: ${result.last}`
         document.getElementById('banner').innerHTML = result.banner.replace(/(:.*?)(\s)(?=[^:]*:|$)/g, '$1<br>');;
         document.getElementById('table').innerHTML = '';
         let chulsum = 0;
@@ -190,7 +215,11 @@
                 <td>${Number(data[i].janeak).toLocaleString()}</td>
                 <td>${data[i].naeyong}</td>
                 <td>${data[i].memo==null?'':data[i].memo}</td>
-                <td><select class="tagSelect" class="form-select" data-id="${data[i].id}" data-sel="${data[i].tag}" multiple>
+                <td><select class="tagSelect1" class="form-select" data-id="${data[i].id}" data-sel1="${data[i].tag1}" data-sel2="${data[i].tag2}" data-sel3="${data[i].tag3}" multiple>
+                </select></td>
+                <td><select class="tagSelect2" class="form-select" data-id="${data[i].id}" data-sel1="${data[i].tag1}" data-sel2="${data[i].tag2}" data-sel3="${data[i].tag3}" multiple>
+                </select></td>
+                <td><select class="tagSelect3" class="form-select" data-id="${data[i].id}" data-sel1="${data[i].tag1}" data-sel2="${data[i].tag2}" data-sel3="${data[i].tag3}" multiple>
                 </select></td>
             <tr>`
             chulsum += Number(data[i].chulguem);
@@ -200,19 +229,31 @@
             <td>합계</td>
             <td>${Number(chulsum).toLocaleString()}</td>
             <td>${Number(ipsum).toLocaleString()}</td>
-            <td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td><td></td><td></td><td></td>
             `
-        $('.tagSelect').select2({
+        $('.tagSelect1').select2({
             placeholder: '태그를 선택하세요.',
             allowClear: true,
-            width: '100%'
+            width: '150px'
         });
 
-        $('.tagSelect').on('change', function() {
+        $('.tagSelect2').select2({
+            placeholder: '태그를 선택하세요.',
+            allowClear: true,
+            width: '150px'
+        });
+
+        $('.tagSelect3').select2({
+            placeholder: '태그를 선택하세요.',
+            allowClear: true,
+            width: '150px'
+        });
+
+        $('.tagSelect1').on('change', function() {
             let values = $(this).val();
             if(values) values = values.join(',');
             const id = $(this).data('id');
-            const tags = {'tag':values, 'id':id}
+            const tags = {'tag':values, 'id':id, 'mode':1}
             fetch('/account/save_tag', {
                 method: 'POST',
                 headers: {
@@ -233,27 +274,141 @@
             });
         });
 
-        const response1 = await fetch('/account/load_tags', {
-            method: 'GET'
-        });
-        const result1 = await response1.json();
-        const tags = result1.data
-            .map(tag => tag.name);
-
-        const selects = document.querySelectorAll('.tagSelect');
-
-        selects.forEach(select => {
-            tags.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item;
-                option.textContent = item;
-
-                select.appendChild(option);
+        $('.tagSelect2').on('change', function() {
+            let values = $(this).val();
+            if(values) values = values.join(',');
+            const id = $(this).data('id');
+            const tags = {'tag':values, 'id':id, 'mode':2}
+            fetch('/account/save_tag', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(tags)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+            })
+            .catch(error => {
+                console.error('오류:', error);
             });
-        })
+        });
 
-        $('.tagSelect').each(function () {
-            const sel = $(this).data('sel'); // data-sel 값
+        $('.tagSelect3').on('change', function() {
+            let values = $(this).val();
+            if(values) values = values.join(',');
+            const id = $(this).data('id');
+            const tags = {'tag':values, 'id':id, 'mode':3}
+            fetch('/account/save_tag', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(tags)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+            })
+            .catch(error => {
+                console.error('오류:', error);
+            });
+        });
+
+        {
+            const response1 = await fetch(`/account/load_tags?mode=1`, {
+                method: 'GET'
+            });
+            const result1 = await response1.json();
+            const tags = result1.data
+                .map(tag => tag.name);
+
+            const selects = document.querySelectorAll('.tagSelect1');
+
+            selects.forEach(select => {
+                tags.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+
+                    select.appendChild(option);
+                });
+            })
+        }
+
+        {
+            const response1 = await fetch(`/account/load_tags?mode=2`, {
+                method: 'GET'
+            });
+            const result1 = await response1.json();
+            const tags = result1.data
+                .map(tag => tag.name);
+
+            const selects = document.querySelectorAll('.tagSelect2');
+
+            selects.forEach(select => {
+                tags.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+
+                    select.appendChild(option);
+                });
+            })
+        }
+
+        {
+            const response1 = await fetch(`/account/load_tags?mode=3`, {
+                method: 'GET'
+            });
+            const result1 = await response1.json();
+            const tags = result1.data
+                .map(tag => tag.name);
+
+            const selects = document.querySelectorAll('.tagSelect3');
+
+            selects.forEach(select => {
+                tags.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+
+                    select.appendChild(option);
+                });
+            })
+        }
+
+        $('.tagSelect1').each(function () {
+            const sel = $(this).data('sel1'); // data-sel 값
+
+            if (sel) {
+                const values = sel.split(','); // "1,3,4" → ["1","3","4"]
+
+                $(this).val(values).trigger('change');
+            }
+        });
+
+        $('.tagSelect2').each(function () {
+            const sel = $(this).data('sel2'); // data-sel 값
+
+            if (sel) {
+                const values = sel.split(','); // "1,3,4" → ["1","3","4"]
+
+                $(this).val(values).trigger('change');
+            }
+        });
+
+        $('.tagSelect3').each(function () {
+            const sel = $(this).data('sel3'); // data-sel 값
 
             if (sel) {
                 const values = sel.split(','); // "1,3,4" → ["1","3","4"]
@@ -274,14 +429,16 @@ document.getElementById('search').addEventListener('click', async () => {
     
     const startDate = document.getElementById('startDate').value
     const endDate = document.getElementById('endDate').value
-    const tag = $("#searchTag").val();
+    const tag1 = $("#searchTag1").val();
+    const tag2 = $("#searchTag2").val();
+    const tag3 = $("#searchTag3").val();
 
     fetch('/account/search', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({startDate, endDate, tag})
+        body: JSON.stringify({startDate, endDate, tag1, tag2, tag3})
     })
     .then(response => {
         if (!response.ok) {
@@ -303,7 +460,11 @@ document.getElementById('search').addEventListener('click', async () => {
                 <td>${Number(data[i].janeak).toLocaleString()}</td>
                 <td>${data[i].naeyong}</td>
                 <td>${data[i].memo==null?'':data[i].memo}</td>
-                <td><select class="tagSelect" class="form-select" data-id="${data[i].id}" data-sel="${data[i].tag}" multiple>
+                <td><select class="tagSelect1" class="form-select" data-id="${data[i].id}" data-sel1="${data[i].tag1}" data-sel2="${data[i].tag2}" data-sel3="${data[i].tag3}" multiple>
+                </select></td>
+                <td><select class="tagSelect2" class="form-select" data-id="${data[i].id}" data-sel1="${data[i].tag1}" data-sel2="${data[i].tag2}" data-sel3="${data[i].tag3}" multiple>
+                </select></td>
+                <td><select class="tagSelect3" class="form-select" data-id="${data[i].id}" data-sel1="${data[i].tag1}" data-sel2="${data[i].tag2}" data-sel3="${data[i].tag3}" multiple>
                 </select></td>
             <tr>`
             chulsum += Number(data[i].chulguem);
@@ -313,21 +474,33 @@ document.getElementById('search').addEventListener('click', async () => {
             <td>합계</td>
             <td>${Number(chulsum).toLocaleString()}</td>
             <td>${Number(ipsum).toLocaleString()}</td>
-            <td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td><td></td><td></td><td></td>
             `
 
                 
-        $('.tagSelect').select2({
+        $('.tagSelect1').select2({
             placeholder: '태그를 선택하세요.',
             allowClear: true,
-            width: '100%'
+            width: '150px'
         });
 
-        $('.tagSelect').on('change', function() {
+        $('.tagSelect2').select2({
+            placeholder: '태그를 선택하세요.',
+            allowClear: true,
+            width: '150px'
+        });
+
+        $('.tagSelect3').select2({
+            placeholder: '태그를 선택하세요.',
+            allowClear: true,
+            width: '150px'
+        });
+
+        $('.tagSelect1').on('change', function() {
             let values = $(this).val();
             if(values) values = values.join(',');
             const id = $(this).data('id');
-            const tags = {'tag':values, 'id':id}
+            const tags = {'tag':values, 'id':id, 'mode':1}
             fetch('/account/save_tag', {
                 method: 'POST',
                 headers: {
@@ -348,34 +521,145 @@ document.getElementById('search').addEventListener('click', async () => {
             });
         });
 
-        const response1 = await fetch('/account/load_tags', {
-            method: 'GET'
-        });
-        const result1 = await response1.json();
-        const tags = result1.data
-            .map(tag => tag.name);
-
-        const selects = document.querySelectorAll('.tagSelect');
-
-        selects.forEach(select => {
-            tags.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item;
-                option.textContent = item;
-
-                select.appendChild(option);
+        $('.tagSelect2').on('change', function() {
+            let values = $(this).val();
+            if(values) values = values.join(',');
+            const id = $(this).data('id');
+            const tags = {'tag':values, 'id':id, 'mode':2}
+            fetch('/account/save_tag', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(tags)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+            })
+            .catch(error => {
+                console.error('오류:', error);
             });
-        })
-
-        $('.tagSelect').each(function () {
-            const sel = $(this).data('sel'); // data-sel 값
-
-            if (sel) {
-                const values = sel.split(','); // "1,3,4" → ["1","3","4"]
-
-                $(this).val(values).trigger('change');
-            }
         });
+
+        $('.tagSelect3').on('change', function() {
+            let values = $(this).val();
+            if(values) values = values.join(',');
+            const id = $(this).data('id');
+            const tags = {'tag':values, 'id':id, 'mode':3}
+            fetch('/account/save_tag', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(tags)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+            })
+            .catch(error => {
+                console.error('오류:', error);
+            });
+        });
+
+        {
+            const response1 = await fetch('/account/load_tags?mode=1', {
+                method: 'GET'
+            });
+            const result1 = await response1.json();
+            const tags = result1.data
+                .map(tag => tag.name);
+
+            const selects = document.querySelectorAll('.tagSelect1');
+
+            selects.forEach(select => {
+                tags.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+
+                    select.appendChild(option);
+                });
+            })
+            $('.tagSelect1').each(function () {
+                const sel = $(this).data('sel1'); // data-sel 값
+
+                if (sel) {
+                    const values = sel.split(','); // "1,3,4" → ["1","3","4"]
+
+                    $(this).val(values).trigger('change');
+                }
+            });
+        }
+
+        {
+            const response1 = await fetch('/account/load_tags?mode=2', {
+                method: 'GET'
+            });
+            const result1 = await response1.json();
+            const tags = result1.data
+                .map(tag => tag.name);
+
+            const selects = document.querySelectorAll('.tagSelect2');
+
+            selects.forEach(select => {
+                tags.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+
+                    select.appendChild(option);
+                });
+            })
+            $('.tagSelect2').each(function () {
+                const sel = $(this).data('sel2'); // data-sel 값
+
+                if (sel) {
+                    const values = sel.split(','); // "1,3,4" → ["1","3","4"]
+
+                    $(this).val(values).trigger('change');
+                }
+            });
+        }
+
+        {
+            const response1 = await fetch('/account/load_tags?mode=3', {
+                method: 'GET'
+            });
+            const result1 = await response1.json();
+            const tags = result1.data
+                .map(tag => tag.name);
+
+            const selects = document.querySelectorAll('.tagSelect3');
+
+            selects.forEach(select => {
+                tags.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+
+                    select.appendChild(option);
+                });
+            })
+            $('.tagSelect3').each(function () {
+                const sel = $(this).data('sel3'); // data-sel 값
+
+                if (sel) {
+                    const values = sel.split(','); // "1,3,4" → ["1","3","4"]
+
+                    $(this).val(values).trigger('change');
+                }
+            });
+        }
 
     })
     .catch(error => {
@@ -384,12 +668,12 @@ document.getElementById('search').addEventListener('click', async () => {
 });
 </script>
 <script>
-const container = document.getElementById('tagInputs');
-const saveButton = container.querySelectorAll('button')[0];
+const containers = [document.getElementById('tagInputs1'), document.getElementById('tagInputs2'), document.getElementById('tagInputs3')]
+const saveButtons = [containers[0].querySelectorAll('button')[0],containers[1].querySelectorAll('button')[0],containers[2].querySelectorAll('button')[0]]
 
-function setTags(tags) {
+function setTags(tags, mode) {
     // 기존 input 제거
-    container.querySelectorAll('input').forEach(input => input.remove());
+    containers[mode-1].querySelectorAll('input').forEach(input => input.remove());
 
     // 배열만큼 input 생성
     tags.forEach(tag => {
@@ -398,43 +682,45 @@ function setTags(tags) {
         input.value = tag;
         input.disabled = true;
 
-        container.insertBefore(input, saveButton);
+        containers[mode-1].insertBefore(input, saveButtons[mode-1]);
     });
 
     // 마지막 빈 input 하나 추가
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'tags_name';
-    container.insertBefore(input, saveButton);
+    containers[mode-1].insertBefore(input, saveButtons[mode-1]);
 }
 
-async function openModal() {
-    const response = await fetch('/account/load_tags', {
+async function openModal(mode) {
+    const response = await fetch(`/account/load_tags?mode=${mode}`, {
             method: 'GET'
         });
     const result = await response.json();
     const tags = result.data
         .map(tag => tag.name);
-    setTags(tags);
-    bindLastInput();
+    setTags(tags, mode);
+    bindLastInput(mode);
 
-    console.log(result.data)
-
-    document.getElementById("myModal").style.display = "block";
+    document.getElementById("myModal"+mode).style.display = "block";
 }
 
-function saveModal() {
-    const tags = Array.from(document.querySelectorAll('#tagInputs .tags_name'))
+function saveModal(mode) {
+    const tags = Array.from(document.querySelectorAll(`#tagInputs${mode} .tags_name`))
     .filter(input => !input.disabled)
     .map(input => input.value.trim())
     .filter(value => value !== '');
 
+    const data = {
+        'tags': tags,
+        'mode': mode
+    }
     fetch('/account/save_tags', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(tags)
+        body: JSON.stringify(data)
     })
     .then(response => {
         if (!response.ok) {
@@ -446,8 +732,8 @@ function saveModal() {
         if(result.success == false){
             alert(result.item+' 태그가 중복입니다')
         }else{
-            const selects = document.querySelectorAll('.tagSelect');
-
+            const selects = document.querySelectorAll('.tagSelect'+mode);
+            
             selects.forEach(select => {
                 tags.forEach(item => {
                     const option = document.createElement('option');
@@ -457,21 +743,29 @@ function saveModal() {
                     select.appendChild(option);
                 });
             })
+            const select = document.getElementById('searchTag'+mode)
+            tags.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+
+                    select.appendChild(option);
+                });
         }
     })
     .catch(error => {
         console.error('오류:', error);
     });
 
-    document.getElementById("myModal").style.display = "none";
+    document.getElementById("myModal"+mode).style.display = "none";
 }
 
-function closeModal() {
-    document.getElementById("myModal").style.display = "none";
+function closeModal(mode) {
+    document.getElementById("myModal"+mode).style.display = "none";
 }
 
-function bindLastInput() {
-    const inputs = container.querySelectorAll('input');
+function bindLastInput(mode) {
+    const inputs = containers[mode-1].querySelectorAll('input');
     const lastInput = inputs[inputs.length - 1];
 
     lastInput.oninput = function () {
@@ -485,39 +779,92 @@ function bindLastInput() {
         newInput.type = 'text';
         newInput.className = 'tags_name';
 
-        container.insertBefore(newInput, saveButton);
+        containers[mode-1].insertBefore(newInput, saveButtons[mode-1]);
 
         // 새 마지막 input에만 이벤트 등록
-        bindLastInput();
+        bindLastInput(mode);
     };
 }
 
-bindLastInput();
+bindLastInput(1);
+bindLastInput(2);
+bindLastInput(3);
 </script>
 <script>
     async function loadSearchTag(){
-                $('#searchTag').select2({
-            placeholder: '태그를 선택하세요.',
-            allowClear: true,
-            width: '180px'
-        });
+        {
+            $('#searchTag1').select2({
+                placeholder: '태그를 선택하세요.',
+                allowClear: true,
+                width: '180px'
+            });
 
-        const response1 = await fetch('/account/load_tags', {
-            method: 'GET'
-        });
-        const result1 = await response1.json();
-        const tags = result1.data
-            .map(tag => tag.name);
-        
-        const select = document.querySelector('#searchTag');
+            const response1 = await fetch('/account/load_tags?mode=1', {
+                method: 'GET'
+            });
+            const result1 = await response1.json();
+            const tags = result1.data
+                .map(tag => tag.name);
+            
+            const select = document.querySelector('#searchTag1');
 
-        tags.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item;
-            option.textContent = item;
+            tags.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
 
-            select.appendChild(option);
-        });
+                select.appendChild(option);
+            });
+        }
+        {
+            $('#searchTag2').select2({
+                placeholder: '태그를 선택하세요.',
+                allowClear: true,
+                width: '180px'
+            });
+
+            const response1 = await fetch('/account/load_tags?mode=2', {
+                method: 'GET'
+            });
+            const result1 = await response1.json();
+            const tags = result1.data
+                .map(tag => tag.name);
+            
+            const select = document.querySelector('#searchTag2');
+
+            tags.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
+
+                select.appendChild(option);
+            });
+        }
+
+        {
+            $('#searchTag3').select2({
+                placeholder: '태그를 선택하세요.',
+                allowClear: true,
+                width: '180px'
+            });
+
+            const response1 = await fetch('/account/load_tags?mode=3', {
+                method: 'GET'
+            });
+            const result1 = await response1.json();
+            const tags = result1.data
+                .map(tag => tag.name);
+            
+            const select = document.querySelector('#searchTag3');
+
+            tags.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
+
+                select.appendChild(option);
+            });
+        }
     }
    $(function() {
            //input을 datepicker로 선언
