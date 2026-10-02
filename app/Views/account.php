@@ -64,6 +64,9 @@
                 <li class="nav-item">
                     <a href="/account" class="nav-link">계좌내역</a>
                 </li>
+                <li class="nav-item">
+                    <a href="/import" class="nav-link">매입대장</a>
+                </li>
             </ul>
         </div>
 

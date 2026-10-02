@@ -12,3 +12,6 @@ $routes->get('/account/load_tags', 'Account::load_tags');
 $routes->post('/account/save_tags', 'Account::save_tags');
 $routes->post('/account/save_tag', 'Account::save_tag');
 $routes->post('/account/search', 'Account::search');
+
+$routes->get('/import', 'Import::index');
+$routes->get('/inventory', 'Inventory::index');
